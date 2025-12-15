@@ -79,75 +79,146 @@ ${textElements}
     }
   };
 
+  // Save MD file to public/ directory via localhost:5173
+  const saveMdToFile = async (text: string, mdFilePath: string) => {
+    try {
+      // Send POST request to localhost:5173 to save the MD file
+      const response = await fetch('http://localhost:5173/api/save-file', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: text,
+          path: mdFilePath
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log(`[HTTPButton] MD file saved successfully to public/${mdFilePath}`);
+      } else {
+        const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.warn('[HTTPButton] Failed to save MD file via server:', error);
+      }
+    } catch (error) {
+      // If localhost:5173 is not available (e.g., in production), silently fail
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.debug('[HTTPButton] Dev server not available, skipping MD file save');
+      } else {
+        console.error('[HTTPButton] Failed to save MD file:', error);
+      }
+    }
+  };
+
+  // Load text content from file or HTTP URL (shared function)
+  const loadTextContent = async (context: string): Promise<string | null> => {
+    const action = plugin.getAction(context);
+    if (!action) return null;
+
+    const settings = action.settings as any;
+    const mdFilePath = settings?.mdFilePath || 'text.md';
+    const textUrl = settings?.textUrl || '';
+    const username = settings?.httpUsername || '';
+    const password = settings?.httpPassword || '';
+
+    let text = '';
+    
+    // Try to fetch from textUrl first if provided, otherwise use file
+    if (textUrl) {
+      // Check if fetchText is available, otherwise use direct fetch
+      if (typeof plugin.fetchText === 'function') {
+        const authOptions = username && password ? { username, password } : undefined;
+        const fetchOptions: any = { ...authOptions, button: 0 };
+        if (mdFilePath && mdFilePath.trim()) {
+          const name = mdFilePath.replace(/\.md$/, '').trim();
+          if (name) {
+            fetchOptions.name = name;
+          }
+        }
+        console.log('[HTTPButton] Fetching text with options:', { textUrl, button: fetchOptions.button, name: fetchOptions.name });
+        const result = await plugin.fetchText(textUrl, fetchOptions);
+        if (result.success && result.text) {
+          text = result.text;
+          // Save to mdFilePath after fetching from textUrl
+          await saveMdToFile(text, mdFilePath);
+        } else {
+          console.error(`[HTTPButton] Failed to load from ${textUrl}:`, result.error);
+          // Fallback to file if HTTP fails
+          const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+          if (response.ok) {
+            text = await response.text();
+          } else {
+            console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
+            return null;
+          }
+        }
+      } else {
+        // Fallback: use direct fetch with Basic Auth
+        console.warn('[HTTPButton] fetchText not available, using direct fetch');
+        try {
+          const headers: HeadersInit = {};
+          if (username && password) {
+            const credentials = btoa(`${username}:${password}`);
+            headers['Authorization'] = `Basic ${credentials}`;
+          }
+          const payload: any = { button: 0 };
+          if (mdFilePath && mdFilePath.trim()) {
+            const name = mdFilePath.replace(/\.md$/, '').trim();
+            if (name) {
+              payload.name = name;
+            }
+          }
+          console.log('[HTTPButton] Direct fetch with payload:', payload);
+          const response = await fetch(textUrl, {
+            method: 'POST',
+            headers: {
+              ...headers,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          if (response.ok) {
+            text = await response.text();
+            // Save to mdFilePath after fetching from textUrl
+            await saveMdToFile(text, mdFilePath);
+          } else {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+        } catch (error: any) {
+          console.error(`[HTTPButton] Failed to load from ${textUrl}:`, error);
+          // Fallback to file if HTTP fails
+          const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+          if (response.ok) {
+            text = await response.text();
+          } else {
+            console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
+            return null;
+          }
+        }
+      }
+    } else {
+      // Use file as before
+      const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+      if (!response.ok) {
+        console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
+        return null;
+      }
+      text = await response.text();
+    }
+
+    return text;
+  };
+
   // Load text content from file or HTTP URL and generate SVG image
   const loadButtonContent = async (context: string, forceUpdate = false) => {
     try {
       const action = plugin.getAction(context);
       if (!action) return;
 
-      const settings = action.settings as any;
-      const mdFilePath = settings?.mdFilePath || 'text.md';
-      const textUrl = settings?.textUrl || '';
-      const username = settings?.httpUsername || '';
-      const password = settings?.httpPassword || '';
-
-      let text = '';
-      
-      // Try to fetch from textUrl first if provided, otherwise use file
-      if (textUrl) {
-        // Check if fetchText is available, otherwise use direct fetch
-        if (typeof plugin.fetchText === 'function') {
-          const authOptions = username && password ? { username, password } : undefined;
-          const result = await plugin.fetchText(textUrl, authOptions);
-          if (result.success && result.text) {
-            text = result.text;
-          } else {
-            console.error(`[HTTPButton] Failed to load from ${textUrl}:`, result.error);
-            // Fallback to file if HTTP fails
-            const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
-            if (response.ok) {
-              text = await response.text();
-            } else {
-              console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
-              return;
-            }
-          }
-        } else {
-          // Fallback: use direct fetch with Basic Auth
-          console.warn('[HTTPButton] fetchText not available, using direct fetch');
-          try {
-            const headers: HeadersInit = {};
-            if (username && password) {
-              const credentials = btoa(`${username}:${password}`);
-              headers['Authorization'] = `Basic ${credentials}`;
-            }
-            const response = await fetch(textUrl, { method: 'GET', headers });
-            if (response.ok) {
-              text = await response.text();
-            } else {
-              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-          } catch (error: any) {
-            console.error(`[HTTPButton] Failed to load from ${textUrl}:`, error);
-            // Fallback to file if HTTP fails
-            const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
-            if (response.ok) {
-              text = await response.text();
-            } else {
-              console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
-              return;
-            }
-          }
-        }
-      } else {
-        // Use file as before
-        const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
-        if (!response.ok) {
-          console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
-          return;
-        }
-        text = await response.text();
-      }
+      const text = await loadTextContent(context);
+      console.log('[HTTPButton] Loaded text:', text);
+      if (!text) return;
 
       const previousContent = textMdContentMap.get(context) || '';
       
@@ -178,6 +249,26 @@ ${textElements}
       console.log('[HTTPButton] Action context:', action.context);
       console.log('[HTTPButton] SVG preview:', svg.substring(0, 100) + '...');
       
+      // Check if MD file exists, and save it if not exists (only if loaded from textUrl)
+      const settings = action.settings as any;
+      const mdFilePath = settings?.mdFilePath || 'text.md';
+      const textUrl = settings?.textUrl || '';
+      
+      if (textUrl) {
+        // If content was loaded from textUrl, check if local MD file exists
+        try {
+          const fileCheckResponse = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+          if (!fileCheckResponse.ok && fileCheckResponse.status === 404) {
+            // File doesn't exist, save it
+            console.log(`[HTTPButton] MD file ${mdFilePath} not found, saving content...`);
+            await saveMdToFile(text, mdFilePath);
+          }
+        } catch (error) {
+          // If fetch fails (e.g., in production), silently continue
+          console.debug('[HTTPButton] Could not check MD file existence, continuing...');
+        }
+      }
+      
       try {
         action.setImage(dataUrl);
         // action.setImage(dataUrlTest);
@@ -190,7 +281,8 @@ ${textElements}
       saveSvgToFile(svg);
       
       if (forceUpdate || text !== previousContent) {
-        console.log(`[HTTPButton] Updated button content from ${mdFilePath} (${lines.length} buttons)`);
+        const source = textUrl || mdFilePath;
+        console.log(`[HTTPButton] Updated button content from ${source} (${lines.length} buttons)`);
       }
     } catch (error) {
       console.error('[HTTPButton] Failed to load MD file:', error);
@@ -235,36 +327,18 @@ ${textElements}
     const action = plugin.getAction(context);
     if (!action) return;
 
-    const DEFAULT_HTTP_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button-1';
+    const DEFAULT_HTTP_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button';
     const settings = action.settings as any;
     const httpUrl = settings?.httpUrl || DEFAULT_HTTP_URL;
     const username = settings?.httpUsername || '';
     const password = settings?.httpPassword || '';
 
-    // Get the line content from MD file
-    const mdFilePath = settings?.mdFilePath || 'text.md';
+    // Send buttonIndex as value
     try {
-      const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
-      if (!response.ok) return;
-
-      const text = await response.text();
-      const lines = text
-        .split('\n')
-        .filter((line) => line.trim() && !line.startsWith('button content:'))
-        .map((line) => line.trim());
-
-      if (buttonIndex < 1 || buttonIndex > lines.length) {
-        console.warn(`[HTTPButton] Button index ${buttonIndex} out of range (1-${lines.length}). MD file has ${lines.length} lines.`);
-        return;
-      }
-
-      const lineContent = lines[buttonIndex - 1];
-
       const result = await plugin.sendHttpRequest(
         httpUrl,
         {
-          path: lineContent,
-          value: lineContent
+          button: buttonIndex
         },
         username && password ? { username, password } : undefined
       );
@@ -294,6 +368,8 @@ ${textElements}
     didReceiveSettings({ context, payload }) {
       // Restart watcher if settings changed (e.g., mdFilePath)
       console.log(`[HTTPButton] Settings updated: ${context}`);
+      // Clear cached content to force reload
+      textMdContentMap.delete(context);
       loadButtonContent(context, true);
       watchMdFile(context);
     },

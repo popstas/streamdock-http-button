@@ -6,8 +6,8 @@
   const property = usePropertyStore();
   const message = useMessage();
 
-  const DEFAULT_HTTP_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button-1';
-  const DEFAULT_TEXT_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button-1/getText';
+  const DEFAULT_HTTP_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button';
+  const DEFAULT_TEXT_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button/getText';
   const DEFAULT_UPDATE_INTERVAL = 60000; // 60 seconds
 
   const mdFilePath = ref('text.md');
@@ -138,12 +138,12 @@
         <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Text URL:</label>
         <NInput
           v-model:value="textUrl"
-          placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button-1/getText"
+          placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button/getText"
           style="margin-bottom: 15px"
           :disabled="saving"
         />
         <div style="font-size: 11px; color: #999; margin-bottom: 15px">
-          URL to fetch text content via HTTP GET request (uses Basic Auth if configured)
+          URL to fetch text content via HTTP POST request (uses Basic Auth if configured)
         </div>
       </div>
     </TabView>
@@ -151,7 +151,7 @@
     <TabView label="HTTP URL">
       <NInput
         v-model:value="httpUrl"
-        placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button-1"
+        placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button"
         style="margin-bottom: 15px"
         :disabled="saving"
       />

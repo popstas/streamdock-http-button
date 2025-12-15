@@ -128,6 +128,10 @@ export const usePluginStore = defineStore('pluginStore', () => {
       return this.list.filter((item) => item.action === action);
     };
 
+    static getList = () => { 
+      return Actions.list
+    };
+
     sendToPropertyInspector = (payload: any) => {
       if (!server) return;
       server.send(JSON.stringify({ event: 'sendToPropertyInspector', action: this.action, context: this.context, payload }));
@@ -222,10 +226,10 @@ export const usePluginStore = defineStore('pluginStore', () => {
 
   const eventEmitter = new EventEmitter();
 
-  // Fetch text with optional basic auth (GET request)
+  // Fetch text with optional basic auth (POST request)
   const fetchText = async (
     url: string,
-    options?: { username?: string; password?: string }
+    options?: { username?: string; password?: string; button?: number; name?: string }
   ): Promise<{ success: boolean; error?: string; text?: string }> => {
     try {
       const headers: HeadersInit = {};
@@ -236,9 +240,20 @@ export const usePluginStore = defineStore('pluginStore', () => {
         headers['Authorization'] = `Basic ${credentials}`;
       }
 
+      const payload: { button: number; name?: string } = {
+        button: options?.button ?? 0
+      };
+      if (options?.name !== undefined) {
+        payload.name = options.name;
+      }
+
       const response = await fetch(url, {
-        method: 'GET',
-        headers
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -265,7 +280,7 @@ export const usePluginStore = defineStore('pluginStore', () => {
   // Send HTTP request with optional basic auth
   const sendHttpRequest = async (
     url: string,
-    data: { path: string; value: string },
+    data: { [key: string]: any },
     options?: { username?: string; password?: string }
   ): Promise<{ success: boolean; error?: string; response?: any }> => {
     try {
