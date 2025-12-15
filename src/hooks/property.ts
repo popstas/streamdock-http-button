@@ -25,8 +25,21 @@ export const usePropertyStore = defineStore('propertyStore', () => {
 
   const message = ref<StreamDock.Message>();
   const server = new WebSocket('ws://127.0.0.1:' + window.argv[0]);
+  const pendingSettings: any[] = [];
+  
   server.onopen = () => {
     server.send(JSON.stringify({ event: window.argv[2], uuid: window.argv[1] }));
+    // Send any pending settings
+    while (pendingSettings.length > 0) {
+      const settings = pendingSettings.shift();
+      server.send(
+        JSON.stringify({
+          event: 'setSettings',
+          context: window.argv[1],
+          payload: settings
+        })
+      );
+    }
   };
   server.onmessage = (e) => {
     message.value = JSON.parse(e.data);
@@ -89,6 +102,22 @@ export const usePropertyStore = defineStore('propertyStore', () => {
     server.send(JSON.stringify(message));
   };
 
+  const setSettings = (payload: any) => {
+    if (server.readyState === WebSocket.OPEN) {
+      server.send(
+        JSON.stringify({
+          event: 'setSettings',
+          context: window.argv[1],
+          payload
+        })
+      );
+      console.log('[Property Store] Settings sent:', payload);
+    } else {
+      console.warn('[Property Store] WebSocket not ready, queuing settings');
+      pendingSettings.push(payload);
+    }
+  };
+
   const setImage = (url: string) => {
     if (url.includes('data:')) {
       server.send(JSON.stringify({ event: 'setImage', context: window.argv[4].context, payload: { target: 0, image: url } }));
@@ -122,6 +151,7 @@ export const usePropertyStore = defineStore('propertyStore', () => {
     sendToPlugin,
     getGlobalSettings,
     setGlobalSettings,
+    setSettings,
     setState,
     setTitle,
     setImage,

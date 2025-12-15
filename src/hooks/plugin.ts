@@ -144,19 +144,26 @@ export const usePluginStore = defineStore('pluginStore', () => {
     };
 
     setImage = (url: string) => {
+      console.log('[Plugin Store] setImage called for context:', this.context, 'url type:', url.substring(0, 50));
+      
       if (!server) {
+        console.log('[Plugin Store] setImage: No server, adding to pending images');
         pendingImages.push({ context: this.context, image: url });
         return;
       }
 
       if (server.readyState !== WebSocket.OPEN) {
+        console.log('[Plugin Store] setImage: Server not open, readyState:', server.readyState, 'adding to pending images');
         pendingImages.push({ context: this.context, image: url });
         return;
       }
 
       if (url.includes('data:')) {
         try {
-          server.send(JSON.stringify({ event: 'setImage', context: this.context, payload: { target: 0, image: url } }));
+          const message = JSON.stringify({ event: 'setImage', context: this.context, payload: { target: 0, image: url } });
+          console.log('[Plugin Store] setImage: Sending data URL, message length:', message.length);
+          server.send(message);
+          console.log('[Plugin Store] setImage: Message sent successfully');
         } catch (error) {
           console.error('[Plugin Store] setImage: Error sending image:', error);
           pendingImages.push({ context: this.context, image: url });
@@ -215,14 +222,66 @@ export const usePluginStore = defineStore('pluginStore', () => {
 
   const eventEmitter = new EventEmitter();
 
-  // Send HTTP request (no auth)
-  const sendHttpRequest = async (url: string, data: { path: string; value: string }): Promise<{ success: boolean; error?: string; response?: any }> => {
+  // Fetch text with optional basic auth (GET request)
+  const fetchText = async (
+    url: string,
+    options?: { username?: string; password?: string }
+  ): Promise<{ success: boolean; error?: string; text?: string }> => {
     try {
+      const headers: HeadersInit = {};
+
+      // Add Basic Auth header if credentials are provided
+      if (options?.username && options?.password) {
+        const credentials = btoa(`${options.username}:${options.password}`);
+        headers['Authorization'] = `Basic ${credentials}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        return {
+          success: false,
+          error: `HTTP ${response.status}: ${response.statusText}${errorText ? ' - ' + errorText : ''}`
+        };
+      }
+
+      const text = await response.text();
+      return {
+        success: true,
+        text
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message || 'Network error'
+      };
+    }
+  };
+
+  // Send HTTP request with optional basic auth
+  const sendHttpRequest = async (
+    url: string,
+    data: { path: string; value: string },
+    options?: { username?: string; password?: string }
+  ): Promise<{ success: boolean; error?: string; response?: any }> => {
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add Basic Auth header if credentials are provided
+      if (options?.username && options?.password) {
+        const credentials = btoa(`${options.username}:${options.password}`);
+        headers['Authorization'] = `Basic ${credentials}`;
+      }
+
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify(data)
       });
 
@@ -257,6 +316,7 @@ export const usePluginStore = defineStore('pluginStore', () => {
     Unterval,
     setGlobalSettings,
     getGlobalSettings,
+    fetchText,
     sendHttpRequest,
     sendPendingImages,
     ActionArr: Actions.list,
