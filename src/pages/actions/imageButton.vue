@@ -1,0 +1,145 @@
+<script setup lang="ts">
+  import { usePropertyStore, useWatchEvent, TabView } from '@/hooks/property';
+  import { ref, onMounted, watch, nextTick } from 'vue';
+  import { NInput, NButton, useMessage } from 'naive-ui';
+
+  const property = usePropertyStore();
+  const message = useMessage();
+
+  const DEFAULT_UPDATE_INTERVAL = 60000; // 60 seconds
+  const DEFAULT_IMAGE_NAME = 'httpImage';
+
+  const imageUrl = ref('');
+  const imageName = ref(DEFAULT_IMAGE_NAME);
+  const updateInterval = ref(String(DEFAULT_UPDATE_INTERVAL));
+  const saving = ref(false);
+
+  onMounted(() => {
+    // Settings are already loaded from window.argv[4].payload.settings
+    // No need to call getGlobalSettings for action settings
+  });
+
+  watch(
+    () => property.settings,
+    (newSettings) => {
+      if (newSettings) {
+        if ((newSettings as any).imageUrl !== undefined) {
+          imageUrl.value = (newSettings as any).imageUrl || '';
+        }
+        if ((newSettings as any).imageName !== undefined) {
+          imageName.value = (newSettings as any).imageName || DEFAULT_IMAGE_NAME;
+        }
+        if ((newSettings as any).updateInterval !== undefined) {
+          updateInterval.value = String((newSettings as any).updateInterval || DEFAULT_UPDATE_INTERVAL);
+        }
+      }
+    },
+    { deep: true, immediate: true }
+  );
+
+  const saveConfig = async () => {
+    saving.value = true;
+    try {
+      const newSettings = {
+        ...property.settings,
+        imageUrl: imageUrl.value || '',
+        imageName: imageName.value || DEFAULT_IMAGE_NAME,
+        updateInterval: Number(updateInterval.value) || DEFAULT_UPDATE_INTERVAL
+      } as any;
+
+      console.log('[Property imageButton] Saving config:', newSettings);
+
+      // Update local settings without triggering watcher
+      property.preventWatch = true;
+      property.settings = newSettings;
+      await nextTick();
+      
+      // Manually send setSettings to ensure it's saved
+      // The watcher will also send it, but we ensure it's sent here too
+      property.setSettings(newSettings);
+      
+      // Allow watcher to work again
+      await nextTick();
+      property.preventWatch = false;
+
+      // Wait a bit to ensure settings are saved
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      message.success('Configuration saved successfully', {
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('[Property imageButton] Failed to save config:', error);
+      message.error('Failed to save configuration');
+    } finally {
+      saving.value = false;
+    }
+  };
+
+  useWatchEvent({
+    didReceiveSettings(data) {
+      if (data.payload?.settings) {
+        const settings = data.payload.settings as any;
+        if (settings.imageUrl !== undefined) {
+          imageUrl.value = settings.imageUrl || '';
+        }
+        if (settings.imageName !== undefined) {
+          imageName.value = settings.imageName || DEFAULT_IMAGE_NAME;
+        }
+        if (settings.updateInterval !== undefined) {
+          updateInterval.value = String(settings.updateInterval || DEFAULT_UPDATE_INTERVAL);
+        }
+      }
+    }
+  });
+</script>
+
+<template>
+  <div style="padding: 15px">
+    <TabView label="Image Source">
+      <div style="margin-bottom: 10px">
+        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Image URL:</label>
+        <NInput
+          v-model:value="imageUrl"
+          placeholder="https://example.com/image.png"
+          style="margin-bottom: 15px"
+          :disabled="saving"
+        />
+        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+          URL to fetch image from (e.g., Grafana render endpoint)
+        </div>
+      </div>
+      <div style="margin-bottom: 10px">
+        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Image Name:</label>
+        <NInput
+          v-model:value="imageName"
+          placeholder="httpImage"
+          style="margin-bottom: 15px"
+          :disabled="saving"
+        />
+        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+          Name for saved image file (saved to public/last/{name}.png)
+        </div>
+      </div>
+    </TabView>
+
+    <TabView label="Update Settings">
+      <NInput
+        v-model:value="updateInterval"
+        placeholder="60000"
+        style="margin-bottom: 15px"
+        :disabled="saving"
+      />
+      <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+        Update interval in milliseconds (default: 60000 = 60 seconds). How often to fetch and update the image.
+      </div>
+    </TabView>
+
+    <NButton type="primary" @click="saveConfig" :loading="saving" block style="margin-top: 15px">
+      Save Configuration
+    </NButton>
+  </div>
+</template>
+
+<style lang="scss" scoped></style>
+
