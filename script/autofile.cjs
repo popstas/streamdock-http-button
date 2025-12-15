@@ -11,6 +11,12 @@ if (process.argv[2] === 'dev') {
   fs.copyFileSync('./script/_.html', './dist/_.html');
 }
 
+// Copy data directory to dist if it exists (for both dev and build)
+if (fs.existsSync('./data')) {
+  fs.ensureDirSync('./dist');
+  fs.copySync('./data', './dist/data');
+}
+
 // 根据用户生成
 manifest.Actions = Actions.map((item) => {
   item.Name = item.i18n['en'].Name;
@@ -70,5 +76,11 @@ fs.writeJSONSync('./dist/manifest.json', manifest, { spaces: 2, EOL: '\r\n' });
 // 复制到插件文件夹
 const PluginName = `${PUUID}.sdPlugin`;
 const PluginPath = path.join(process.env.APPDATA, 'HotSpot/StreamDock/plugins', PluginName);
-fs.removeSync(PluginPath) || fs.mkdirSync(PluginPath) || fs.copySync('./dist', PluginPath);
+try {
+  fs.removeSync(PluginPath);
+} catch (e) {
+  // Directory doesn't exist, that's fine
+}
+fs.ensureDirSync(PluginPath);
+fs.copySync('./dist', PluginPath);
 

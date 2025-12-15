@@ -131,7 +131,7 @@
           :disabled="saving"
         />
         <div style="font-size: 11px; color: #999; margin-bottom: 15px">
-          Path to markdown file (relative to public/ directory)
+          Path to markdown file (relative to data/ directory)
         </div>
       </div>
       <div>

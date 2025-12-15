@@ -3,9 +3,6 @@ export const useI18nStore = () => {
   const localString = {
     en: {
       'Operation options': 'Operation options'
-    },
-    zh_CN: {
-      'Operation options': '操作选项'
     }
   };
   return localString[language] || localString['en'];

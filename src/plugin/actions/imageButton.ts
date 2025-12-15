@@ -9,10 +9,13 @@ export default function (name: string) {
   // Store previous image URL to detect changes (per context)
   const imageUrlMap = new Map<string, string>();
 
+  // Store previous title to detect changes (per context)
+  const titleMap = new Map<string, string>();
+
   // Store cleanup functions for image watchers (per context)
   const watcherCleanups = new Map<string, () => void>();
 
-  // Save image to public/last/{name}.png via localhost:5173
+  // Save image to data/last/{name}.png via localhost:5173
   const saveImageToFile = async (imageData: string, imagePath: string) => {
     try {
       // Send POST request to localhost:5173 to save the image
@@ -29,7 +32,7 @@ export default function (name: string) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(`[ImageButton] Image saved successfully to public/${imagePath}`);
+        console.log(`[ImageButton] Image saved successfully to data/${imagePath}`);
       } else {
         const error = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.warn('[ImageButton] Failed to save image via server:', error);
@@ -41,6 +44,26 @@ export default function (name: string) {
       } else {
         console.error('[ImageButton] Failed to save image:', error);
       }
+    }
+  };
+
+  // Set title from settings
+  const setButtonTitle = (context: string) => {
+    try {
+      const action = plugin.getAction(context);
+      if (!action) return;
+
+      const settings = action.settings as any;
+      const title = settings?.title || '';
+      const previousTitle = titleMap.get(context) || '';
+
+      if (title !== previousTitle) {
+        titleMap.set(context, title);
+        action.setTitle(title);
+        console.log(`[ImageButton] Title set to: "${title}"`);
+      }
+    } catch (error) {
+      console.error('[ImageButton] Error setting title:', error);
     }
   };
 
@@ -101,7 +124,7 @@ export default function (name: string) {
           action.setImage(dataUrl);
           console.log('[ImageButton] setImage called successfully');
           
-          // Save image to public/last/{name}.png
+          // Save image to data/last/{name}.png
           const imagePath = `last/${imageName}.png`;
           await saveImageToFile(dataUrl, imagePath);
         } catch (error) {
@@ -142,6 +165,7 @@ export default function (name: string) {
       plugin.Unterval(intervalId);
       watcherCleanups.delete(context);
       imageUrlMap.delete(context);
+      titleMap.delete(context);
     };
     
     watcherCleanups.set(context, cleanup);
@@ -152,6 +176,7 @@ export default function (name: string) {
     ActionID,
     willAppear({ context, payload }) {
       console.log(`[ImageButton] Action appeared: ${context}`);
+      setButtonTitle(context);
       loadImageContent(context, true);
       watchImageUrl(context);
     },
@@ -165,6 +190,8 @@ export default function (name: string) {
     didReceiveSettings({ context, payload }) {
       // Restart watcher if settings changed (e.g., imageUrl or imageName)
       console.log(`[ImageButton] Settings updated: ${context}`);
+      // Update title if it changed
+      setButtonTitle(context);
       // Clear cached URL to force reload
       imageUrlMap.delete(context);
       loadImageContent(context, true);

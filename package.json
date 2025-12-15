@@ -5,7 +5,8 @@
     "dev": "node ./script/autofile.cjs dev && vite",
     "build": "vite build && node ./script/autofile.cjs",
     "start": "vite preview",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "http-server": "node ./script/http-server.cjs"
   },
   "dependencies": {
     "pinia": "^2.1.7",

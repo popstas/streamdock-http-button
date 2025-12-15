@@ -47,7 +47,7 @@ ${textElements}
 </svg>`;
   };
 
-  // Save SVG to public/images/last.svg via localhost:5173
+  // Save SVG to data/images/last.svg via localhost:5173
   const saveSvgToFile = async (svg: string) => {
     try {
       // Send POST request to localhost:5173 to save the SVG
@@ -64,7 +64,7 @@ ${textElements}
 
       if (response.ok) {
         const result = await response.json();
-        console.log('[HTTPButton] SVG saved successfully to public/images/last.svg');
+        console.log('[HTTPButton] SVG saved successfully to data/images/last.svg');
       } else {
         const error = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.warn('[HTTPButton] Failed to save SVG via server:', error);
@@ -79,7 +79,7 @@ ${textElements}
     }
   };
 
-  // Save MD file to public/ directory via localhost:5173
+  // Save MD file to data/ directory via localhost:5173
   const saveMdToFile = async (text: string, mdFilePath: string) => {
     try {
       // Send POST request to localhost:5173 to save the MD file
@@ -96,7 +96,7 @@ ${textElements}
 
       if (response.ok) {
         const result = await response.json();
-        console.log(`[HTTPButton] MD file saved successfully to public/${mdFilePath}`);
+        console.log(`[HTTPButton] MD file saved successfully to data/${mdFilePath}`);
       } else {
         const error = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.warn('[HTTPButton] Failed to save MD file via server:', error);
@@ -145,7 +145,7 @@ ${textElements}
         } else {
           console.error(`[HTTPButton] Failed to load from ${textUrl}:`, result.error);
           // Fallback to file if HTTP fails
-          const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+          const response = await fetch(`/data/${mdFilePath}?t=${Date.now()}`);
           if (response.ok) {
             text = await response.text();
           } else {
@@ -188,7 +188,7 @@ ${textElements}
         } catch (error: any) {
           console.error(`[HTTPButton] Failed to load from ${textUrl}:`, error);
           // Fallback to file if HTTP fails
-          const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+          const response = await fetch(`/data/${mdFilePath}?t=${Date.now()}`);
           if (response.ok) {
             text = await response.text();
           } else {
@@ -199,7 +199,7 @@ ${textElements}
       }
     } else {
       // Use file as before
-      const response = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+      const response = await fetch(`/data/${mdFilePath}?t=${Date.now()}`);
       if (!response.ok) {
         console.error(`[HTTPButton] Failed to load ${mdFilePath}: ${response.status}`);
         return null;
@@ -257,7 +257,7 @@ ${textElements}
       if (textUrl) {
         // If content was loaded from textUrl, check if local MD file exists
         try {
-          const fileCheckResponse = await fetch(`/${mdFilePath}?t=${Date.now()}`);
+          const fileCheckResponse = await fetch(`/data/${mdFilePath}?t=${Date.now()}`);
           if (!fileCheckResponse.ok && fileCheckResponse.status === 404) {
             // File doesn't exist, save it
             console.log(`[HTTPButton] MD file ${mdFilePath} not found, saving content...`);
@@ -277,7 +277,7 @@ ${textElements}
         console.error('[HTTPButton] Error calling setImage:', error);
       }
       
-      // Save SVG to public/images/last.svg after setImage
+      // Save SVG to data/images/last.svg after setImage
       saveSvgToFile(svg);
       
       if (forceUpdate || text !== previousContent) {

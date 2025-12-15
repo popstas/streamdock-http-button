@@ -20,12 +20,12 @@ const saveSvgPlugin = () => {
           req.on('end', () => {
             try {
               const { svg, path } = JSON.parse(body);
-              const publicPath = join(process.cwd(), 'public', path || 'images/last.svg');
-              const dir = dirname(publicPath);
+              const dataPath = join(process.cwd(), 'data', path || 'images/last.svg');
+              const dir = dirname(dataPath);
               mkdirSync(dir, { recursive: true });
-              writeFileSync(publicPath, svg, 'utf-8');
+              writeFileSync(dataPath, svg, 'utf-8');
               res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ success: true, path: publicPath }));
+              res.end(JSON.stringify({ success: true, path: dataPath }));
             } catch (error: any) {
               res.writeHead(500, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ success: false, error: error.message }));
@@ -53,12 +53,12 @@ const saveFilePlugin = () => {
           req.on('end', () => {
             try {
               const { text, path } = JSON.parse(body);
-              const publicPath = join(process.cwd(), 'public', path);
-              const dir = dirname(publicPath);
+              const dataPath = join(process.cwd(), 'data', path);
+              const dir = dirname(dataPath);
               mkdirSync(dir, { recursive: true });
-              writeFileSync(publicPath, text, 'utf-8');
+              writeFileSync(dataPath, text, 'utf-8');
               res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ success: true, path: publicPath }));
+              res.end(JSON.stringify({ success: true, path: dataPath }));
             } catch (error: any) {
               res.writeHead(500, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ success: false, error: error.message }));
@@ -91,17 +91,17 @@ const saveImagePlugin = () => {
                 res.end(JSON.stringify({ success: false, error: 'Missing or invalid imageData field' }));
                 return;
               }
-              const publicPath = join(process.cwd(), 'public', path);
-              const dir = dirname(publicPath);
+              const dataPath = join(process.cwd(), 'data', path);
+              const dir = dirname(dataPath);
               mkdirSync(dir, { recursive: true });
               
               // Convert base64 data URL to buffer
               const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
               const buffer = Buffer.from(base64Data, 'base64');
-              writeFileSync(publicPath, buffer);
+              writeFileSync(dataPath, buffer);
               
               res.writeHead(200, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ success: true, path: publicPath }));
+              res.end(JSON.stringify({ success: true, path: dataPath }));
             } catch (error: any) {
               res.writeHead(500, { 'Content-Type': 'application/json' });
               res.end(JSON.stringify({ success: false, error: error.message }));

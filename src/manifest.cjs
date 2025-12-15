@@ -56,11 +56,11 @@ const Actions = [
         FontSize: '10',
         TitleAlignment: 'top',
         Image: 'images/default.png',
-        ShowTitle: false
+        ShowTitle: true
       }
     ],
     Settings: {},
-    UserTitleEnabled: false,
+    UserTitleEnabled: true,
     SupportedInMultiActions: false,
     Controllers: ['Keypad', 'Information']
   }

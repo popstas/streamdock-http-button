@@ -11,6 +11,7 @@
 
   const imageUrl = ref('');
   const imageName = ref(DEFAULT_IMAGE_NAME);
+  const title = ref('');
   const updateInterval = ref(String(DEFAULT_UPDATE_INTERVAL));
   const saving = ref(false);
 
@@ -29,6 +30,9 @@
         if ((newSettings as any).imageName !== undefined) {
           imageName.value = (newSettings as any).imageName || DEFAULT_IMAGE_NAME;
         }
+        if ((newSettings as any).title !== undefined) {
+          title.value = (newSettings as any).title || '';
+        }
         if ((newSettings as any).updateInterval !== undefined) {
           updateInterval.value = String((newSettings as any).updateInterval || DEFAULT_UPDATE_INTERVAL);
         }
@@ -44,6 +48,7 @@
         ...property.settings,
         imageUrl: imageUrl.value || '',
         imageName: imageName.value || DEFAULT_IMAGE_NAME,
+        title: title.value || '',
         updateInterval: Number(updateInterval.value) || DEFAULT_UPDATE_INTERVAL
       } as any;
 
@@ -86,6 +91,9 @@
         if (settings.imageName !== undefined) {
           imageName.value = settings.imageName || DEFAULT_IMAGE_NAME;
         }
+        if (settings.title !== undefined) {
+          title.value = settings.title || '';
+        }
         if (settings.updateInterval !== undefined) {
           updateInterval.value = String(settings.updateInterval || DEFAULT_UPDATE_INTERVAL);
         }
@@ -118,7 +126,22 @@
           :disabled="saving"
         />
         <div style="font-size: 11px; color: #999; margin-bottom: 15px">
-          Name for saved image file (saved to public/last/{name}.png)
+          Name for saved image file (saved to data/last/{name}.png)
+        </div>
+      </div>
+    </TabView>
+
+    <TabView label="Title">
+      <div style="margin-bottom: 10px">
+        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Button Title:</label>
+        <NInput
+          v-model:value="title"
+          placeholder="Enter button title"
+          style="margin-bottom: 15px"
+          :disabled="saving"
+        />
+        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+          Custom title text displayed on the button
         </div>
       </div>
     </TabView>

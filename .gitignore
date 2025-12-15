@@ -60,3 +60,5 @@ coverage/
 # Prettier cache
 .prettiercache
 
+public/images/last.svg
+data/
