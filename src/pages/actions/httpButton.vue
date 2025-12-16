@@ -81,6 +81,9 @@
       // Wait a bit to ensure settings are saved
       await new Promise(resolve => setTimeout(resolve, 200));
       
+      // Request new text from plugin after saving
+      property.sendToPlugin({ action: 'refreshText' });
+      
       message.success('Configuration saved successfully', {
         duration: 3000
       });
@@ -120,29 +123,29 @@
 </script>
 
 <template>
-  <div style="padding: 15px">
+  <div class="container">
     <TabView label="Text Source">
-      <div style="margin-bottom: 10px">
-        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">MD File Path:</label>
+      <div class="field-wrapper">
+        <label class="field-label">MD File Path:</label>
         <NInput
           v-model:value="mdFilePath"
           placeholder="text.md"
-          style="margin-bottom: 15px"
+          class="field-input"
           :disabled="saving"
         />
-        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+        <div class="field-help">
           Path to markdown file (relative to data/ directory)
         </div>
       </div>
       <div>
-        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Text URL:</label>
+        <label class="field-label">Text URL:</label>
         <NInput
           v-model:value="textUrl"
           placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button/getText"
-          style="margin-bottom: 15px"
+          class="field-input"
           :disabled="saving"
         />
-        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+        <div class="field-help">
           URL to fetch text content via HTTP POST request (uses Basic Auth if configured)
         </div>
       </div>
@@ -152,10 +155,10 @@
       <NInput
         v-model:value="httpUrl"
         placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button"
-        style="margin-bottom: 15px"
+        class="field-input"
         :disabled="saving"
       />
-      <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+      <div class="field-help">
         URL to send HTTP POST request on button click (uses Basic Auth if configured)
       </div>
     </TabView>
@@ -164,38 +167,43 @@
       <NInput
         v-model:value="httpUsername"
         placeholder="Username"
-        style="margin-bottom: 10px"
+        class="field-input field-input-spacing"
         :disabled="saving"
       />
       <NInput
         v-model:value="httpPassword"
         type="password"
         placeholder="Password"
-        style="margin-bottom: 15px"
+        class="field-input"
         :disabled="saving"
       />
-      <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+      <div class="field-help">
         Optional: Basic authentication credentials for HTTP requests
       </div>
     </TabView>
 
-    <TabView label="Update Settings">
-      <NInput
-        v-model:value="updateInterval"
-        placeholder="60000"
-        style="margin-bottom: 15px"
-        :disabled="saving"
-      />
-      <div style="font-size: 11px; color: #999; margin-bottom: 15px">
-        Update interval in milliseconds (default: 60000 = 60 seconds). How often to check for text content updates.
+    <TabView label="Update">
+      <div class="field-wrapper">
+        <label class="field-label">Update Interval:</label>
+        <NInput
+          v-model:value="updateInterval"
+          placeholder="60000"
+          class="field-input"
+          :disabled="saving"
+        />
+        <div class="field-help">
+          Update interval in milliseconds (default: 60000 = 60 seconds). How often to check for text content updates.
+        </div>
       </div>
     </TabView>
 
-    <NButton type="primary" @click="saveConfig" :loading="saving" block style="margin-top: 15px">
+    <NButton type="primary" @click="saveConfig" :loading="saving" block class="save-button">
       Save Configuration
     </NButton>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import './styles.scss';
+</style>
 

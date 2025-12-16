@@ -129,3 +129,4 @@ fan/speed/low
 При нажатии на первую кнопку будет отправлен POST запрос с `{"path": "lights/on", "value": "lights/on"}`.
 
 
+

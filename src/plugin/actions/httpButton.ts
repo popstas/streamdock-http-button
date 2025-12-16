@@ -345,6 +345,11 @@ ${textElements}
 
       if (!result.success) {
         console.error('[HTTPButton] HTTP request failed:', result.error);
+      } else {
+        // Update source text after successful button press
+        console.log(`[HTTPButton] Button pressed, updating source text: ${context}`);
+        textMdContentMap.delete(context);
+        loadButtonContent(context, true);
       }
     } catch (error) {
       console.error('[HTTPButton] Error handling button press:', error);
@@ -396,6 +401,15 @@ ${textElements}
         buttonIndex = row * 5 + column + 1;
       }
       handleButtonPress(context, buttonIndex);
+    },
+    sendToPlugin({ context, payload }) {
+      // Handle messages from property inspector
+      if (payload?.action === 'refreshText') {
+        console.log(`[HTTPButton] Refresh text requested from property inspector: ${context}`);
+        // Clear cached content to force reload
+        textMdContentMap.delete(context);
+        loadButtonContent(context, true);
+      }
     }
   });
 }

@@ -103,66 +103,71 @@
 </script>
 
 <template>
-  <div style="padding: 15px">
-    <TabView label="Image Source">
-      <div style="margin-bottom: 10px">
-        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Image URL:</label>
+  <div class="container">
+    <TabView label="Img Source">
+      <div class="field-wrapper">
+        <label class="field-label">Image URL:</label>
         <NInput
           v-model:value="imageUrl"
           placeholder="https://example.com/image.png"
-          style="margin-bottom: 15px"
+          class="field-input"
           :disabled="saving"
         />
-        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+        <div class="field-help">
           URL to fetch image from (e.g., Grafana render endpoint)
         </div>
       </div>
-      <div style="margin-bottom: 10px">
-        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Image Name:</label>
+      <div class="field-wrapper">
+        <label class="field-label">Image Name:</label>
         <NInput
           v-model:value="imageName"
           placeholder="httpImage"
-          style="margin-bottom: 15px"
+          class="field-input"
           :disabled="saving"
         />
-        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+        <div class="field-help">
           Name for saved image file (saved to data/last/{name}.png)
         </div>
       </div>
     </TabView>
 
     <TabView label="Title">
-      <div style="margin-bottom: 10px">
-        <label style="font-size: 12px; color: #ccc; margin-bottom: 5px; display: block">Button Title:</label>
+      <div class="field-wrapper">
+        <label class="field-label">Button Title:</label>
         <NInput
           v-model:value="title"
           placeholder="Enter button title"
-          style="margin-bottom: 15px"
+          class="field-input"
           :disabled="saving"
         />
-        <div style="font-size: 11px; color: #999; margin-bottom: 15px">
+        <div class="field-help">
           Custom title text displayed on the button
         </div>
       </div>
     </TabView>
 
-    <TabView label="Update Settings">
-      <NInput
-        v-model:value="updateInterval"
-        placeholder="60000"
-        style="margin-bottom: 15px"
-        :disabled="saving"
-      />
-      <div style="font-size: 11px; color: #999; margin-bottom: 15px">
-        Update interval in milliseconds (default: 60000 = 60 seconds). How often to fetch and update the image.
+    <TabView label="Update">
+      <div class="field-wrapper">
+        <label class="field-label">Update Interval:</label>
+        <NInput
+          v-model:value="updateInterval"
+          placeholder="60000"
+          class="field-input"
+          :disabled="saving"
+        />
+        <div class="field-help">
+          Update interval in milliseconds (default: 60000 = 60 seconds). How often to fetch and update the image.
+        </div>
       </div>
     </TabView>
 
-    <NButton type="primary" @click="saveConfig" :loading="saving" block style="margin-top: 15px">
+    <NButton type="primary" @click="saveConfig" :loading="saving" block class="save-button">
       Save Configuration
     </NButton>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+@import './styles.scss';
+</style>
 
