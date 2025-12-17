@@ -127,6 +127,14 @@ export default defineConfig({
     saveFilePlugin(),
     saveImagePlugin()
   ],
+  css: {
+    // Avoid Dart Sass "legacy-js-api" deprecation warnings by using the modern API.
+    preprocessorOptions: {
+      scss: {
+        api: 'modern'
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

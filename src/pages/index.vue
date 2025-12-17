@@ -2,7 +2,14 @@
 <script setup lang="ts">
   import { defineAsyncComponent } from 'vue';
   import { NConfigProvider, NMessageProvider, darkTheme, GlobalThemeOverrides } from 'naive-ui';
-  const PropertyInspector = defineAsyncComponent(() => import(`@/pages/actions/${window.argv[4].action.split('.').pop()}.vue`));
+  // Vite/Rollup can't reliably bundle fully dynamic import paths.
+  // Use a glob so all action inspectors are included in the build, then pick at runtime.
+  const inspectors = import.meta.glob('./actions/*.vue') as Record<string, () => Promise<any>>;
+  const actionName = window.argv?.[4]?.action?.split('.').pop();
+  const inspectorKey = `./actions/${actionName}.vue`;
+  const PropertyInspector = defineAsyncComponent(
+    inspectors[inspectorKey] ?? inspectors['./actions/httpButton.vue'] ?? Object.values(inspectors)[0]
+  );
 
   const Theme: GlobalThemeOverrides = {
     Select: {

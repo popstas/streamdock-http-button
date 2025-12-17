@@ -1,10 +1,14 @@
 <script setup lang="ts">
   import { useWatchEvent, usePluginStore } from '@/hooks/plugin';
 
-  const actionFiles = import.meta.glob('@/plugin/actions/*.ts', { eager: true, import: 'default' });
+  // Use a relative glob to avoid Windows drive-letter / absolute path issues during Rollup build.
+  const actionFiles = import.meta.glob('./actions/*.ts', { eager: true, import: 'default' });
 
   Object.entries(actionFiles).forEach(([path, fn]) => {
-    const actionName = path.replace('/src/plugin/actions/', '').replace('.ts', '');
+    const actionName = path
+      .replace(/^.*\/actions\//, '')
+      .replace(/^\.\/actions\//, '')
+      .replace(/\.ts$/, '');
     if (!fn || typeof fn !== 'function') {
       console.error('[Plugin Index] Invalid action handler:', actionName);
       return;
