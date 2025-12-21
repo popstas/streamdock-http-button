@@ -61,4 +61,5 @@ coverage/
 .prettiercache
 
 public/images/last.svg
+public/images/last
 data/

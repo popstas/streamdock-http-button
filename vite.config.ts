@@ -91,7 +91,7 @@ const saveImagePlugin = () => {
                 res.end(JSON.stringify({ success: false, error: 'Missing or invalid imageData field' }));
                 return;
               }
-              const dataPath = join(process.cwd(), 'data', path);
+              const dataPath = join(process.cwd(), 'public', path);
               const dir = dirname(dataPath);
               mkdirSync(dir, { recursive: true });
               
