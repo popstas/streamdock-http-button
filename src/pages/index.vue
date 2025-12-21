@@ -1,7 +1,6 @@
 <!-- Do not modify this file -->
 <script setup lang="ts">
   import { defineAsyncComponent } from 'vue';
-  import { NConfigProvider, NMessageProvider, darkTheme, GlobalThemeOverrides } from 'naive-ui';
   // Vite/Rollup can't reliably bundle fully dynamic import paths.
   // Use a glob so all action inspectors are included in the build, then pick at runtime.
   const inspectors = import.meta.glob('./actions/*.vue') as Record<string, () => Promise<any>>;
@@ -11,44 +10,10 @@
     inspectors[inspectorKey] ?? inspectors['./actions/httpButton.vue'] ?? Object.values(inspectors)[0]
   );
 
-  const Theme: GlobalThemeOverrides = {
-    Select: {
-      peers: {
-        InternalSelection: {
-          color: '#2D2D2D',
-          borderRadius: '0px',
-          heightMedium: '30px',
-          boxShadowFocus: 'none',
-          boxShadowActive: 'none',
-          border: '1px solid #7a7a7a',
-          borderHover: '1px solid #7a7a7a',
-          borderFocus: '1px solid #7a7a7a'
-        },
-        InternalSelectMenu: {
-          height: '140px'
-        }
-      }
-    },
-    Input: {
-      color: '#2D2D2D',
-      borderRadius: '0px',
-      heightMedium: '30px',
-      boxShadowFocus: 'none',
-      border: '1px solid #7a7a7a',
-      borderHover: '1px solid #7a7a7a'
-    },
-    Checkbox: {
-      boxShadowFocus: 'none'
-    }
-  };
 </script>
 
 <template>
-  <NConfigProvider :theme="darkTheme" :theme-overrides="Theme">
-    <NMessageProvider>
-      <PropertyInspector></PropertyInspector>
-    </NMessageProvider>
-  </NConfigProvider>
+  <PropertyInspector></PropertyInspector>
 </template>
 
 <style>
@@ -80,4 +45,3 @@
     outline: 1px solid slategrey;
   }
 </style>
-

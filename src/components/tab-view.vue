@@ -12,28 +12,29 @@
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
   .tab-wrap {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
-    .label {
-      width: 76px;
-      text-align: end;
-      padding-left: 4px;
-      margin-right: 10px;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-    }
-    .value {
-      flex: 1;
-      width: 0;
-    }
+  }
 
-    &:last-child {
-      margin-bottom: 0;
-    }
+  .tab-wrap .label {
+    width: 76px;
+    text-align: end;
+    padding-left: 4px;
+    margin-right: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .tab-wrap .value {
+    flex: 1;
+    width: 0;
+  }
+
+  .tab-wrap:last-child {
+    margin-bottom: 0;
   }
 </style>
-

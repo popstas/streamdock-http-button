@@ -1,10 +1,8 @@
 <script setup lang="ts">
   import { usePropertyStore, useWatchEvent, TabView } from '@/hooks/property';
   import { ref, onMounted, watch, nextTick } from 'vue';
-  import { NInput, NButton, useMessage } from 'naive-ui';
 
   const property = usePropertyStore();
-  const message = useMessage();
 
   const DEFAULT_HTTP_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button';
   const DEFAULT_TEXT_URL = 'https://node-red.shome.popstas.ru/actions/mirabox/button/getText';
@@ -17,6 +15,8 @@
   const httpPassword = ref('');
   const updateInterval = ref(String(DEFAULT_UPDATE_INTERVAL));
   const saving = ref(false);
+  const statusMessage = ref('');
+  const statusType = ref<'success' | 'error' | ''>('');
 
   onMounted(() => {
     // Settings are already loaded from window.argv[4].payload.settings
@@ -83,13 +83,12 @@
       
       // Request new text from plugin after saving
       property.sendToPlugin({ action: 'refreshText' });
-      
-      message.success('Configuration saved successfully', {
-        duration: 3000
-      });
+      statusType.value = 'success';
+      statusMessage.value = 'Configuration saved successfully';
     } catch (error) {
       console.error('[Property httpButton] Failed to save config:', error);
-      message.error('Failed to save configuration');
+      statusType.value = 'error';
+      statusMessage.value = 'Failed to save configuration';
     } finally {
       saving.value = false;
     }
@@ -127,10 +126,10 @@
     <TabView label="Text Source">
       <div class="field-wrapper">
         <label class="field-label">MD File Path:</label>
-        <NInput
-          v-model:value="mdFilePath"
+        <input
+          v-model="mdFilePath"
           placeholder="text.md"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -139,10 +138,10 @@
       </div>
       <div>
         <label class="field-label">Text URL:</label>
-        <NInput
-          v-model:value="textUrl"
+        <input
+          v-model="textUrl"
           placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button/getText"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -152,10 +151,10 @@
     </TabView>
 
     <TabView label="HTTP URL">
-      <NInput
-        v-model:value="httpUrl"
+      <input
+        v-model="httpUrl"
         placeholder="https://node-red.shome.popstas.ru/actions/mirabox/button"
-        class="field-input"
+        class="field-input text-input"
         :disabled="saving"
       />
       <div class="field-help">
@@ -164,17 +163,17 @@
     </TabView>
 
     <TabView label="Basic Auth">
-      <NInput
-        v-model:value="httpUsername"
+      <input
+        v-model="httpUsername"
         placeholder="Username"
-        class="field-input field-input-spacing"
+        class="field-input field-input-spacing text-input"
         :disabled="saving"
       />
-      <NInput
-        v-model:value="httpPassword"
+      <input
+        v-model="httpPassword"
         type="password"
         placeholder="Password"
-        class="field-input"
+        class="field-input text-input"
         :disabled="saving"
       />
       <div class="field-help">
@@ -185,10 +184,10 @@
     <TabView label="Update">
       <div class="field-wrapper">
         <label class="field-label">Update Interval:</label>
-        <NInput
-          v-model:value="updateInterval"
+        <input
+          v-model="updateInterval"
           placeholder="60000"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -197,13 +196,14 @@
       </div>
     </TabView>
 
-    <NButton type="primary" @click="saveConfig" :loading="saving" block class="save-button">
-      Save Configuration
-    </NButton>
+    <button type="button" @click="saveConfig" :disabled="saving" class="save-button primary-button">
+      <span v-if="saving">Saving...</span>
+      <span v-else>Save Configuration</span>
+    </button>
+    <p v-if="statusMessage" :class="['status', statusType]">{{ statusMessage }}</p>
   </div>
 </template>
 
-<style lang="scss" scoped>
-@use './styles.scss' as *;
+<style scoped>
+@import './styles.css';
 </style>
-

@@ -1,10 +1,8 @@
 <script setup lang="ts">
   import { usePropertyStore, useWatchEvent, TabView } from '@/hooks/property';
   import { ref, onMounted, watch, nextTick } from 'vue';
-  import { NInput, NButton, useMessage } from 'naive-ui';
 
   const property = usePropertyStore();
-  const message = useMessage();
 
   const DEFAULT_UPDATE_INTERVAL = 60000; // 60 seconds
   const DEFAULT_IMAGE_NAME = 'httpImage';
@@ -14,6 +12,8 @@
   const title = ref('');
   const updateInterval = ref(String(DEFAULT_UPDATE_INTERVAL));
   const saving = ref(false);
+  const statusMessage = ref('');
+  const statusType = ref<'success' | 'error' | ''>('');
 
   onMounted(() => {
     // Settings are already loaded from window.argv[4].payload.settings
@@ -70,12 +70,12 @@
       // Wait a bit to ensure settings are saved
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      message.success('Configuration saved successfully', {
-        duration: 3000
-      });
+      statusType.value = 'success';
+      statusMessage.value = 'Configuration saved successfully';
     } catch (error) {
       console.error('[Property imageButton] Failed to save config:', error);
-      message.error('Failed to save configuration');
+      statusType.value = 'error';
+      statusMessage.value = 'Failed to save configuration';
     } finally {
       saving.value = false;
     }
@@ -107,10 +107,10 @@
     <TabView label="Img Source">
       <div class="field-wrapper">
         <label class="field-label">Image URL:</label>
-        <NInput
-          v-model:value="imageUrl"
+        <input
+          v-model="imageUrl"
           placeholder="https://example.com/image.png"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -119,10 +119,10 @@
       </div>
       <div class="field-wrapper">
         <label class="field-label">Image Name:</label>
-        <NInput
-          v-model:value="imageName"
+        <input
+          v-model="imageName"
           placeholder="httpImage"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -134,10 +134,10 @@
     <TabView label="Title">
       <div class="field-wrapper">
         <label class="field-label">Button Title:</label>
-        <NInput
-          v-model:value="title"
+        <input
+          v-model="title"
           placeholder="Enter button title"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -149,10 +149,10 @@
     <TabView label="Update">
       <div class="field-wrapper">
         <label class="field-label">Update Interval:</label>
-        <NInput
-          v-model:value="updateInterval"
+        <input
+          v-model="updateInterval"
           placeholder="60000"
-          class="field-input"
+          class="field-input text-input"
           :disabled="saving"
         />
         <div class="field-help">
@@ -161,13 +161,14 @@
       </div>
     </TabView>
 
-    <NButton type="primary" @click="saveConfig" :loading="saving" block class="save-button">
-      Save Configuration
-    </NButton>
+    <button type="button" @click="saveConfig" :disabled="saving" class="save-button primary-button">
+      <span v-if="saving">Saving...</span>
+      <span v-else>Save Configuration</span>
+    </button>
+    <p v-if="statusMessage" :class="['status', statusType]">{{ statusMessage }}</p>
   </div>
 </template>
 
-<style lang="scss" scoped>
-@use './styles.scss' as *;
+<style scoped>
+@import './styles.css';
 </style>
-

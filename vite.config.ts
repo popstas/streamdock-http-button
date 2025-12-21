@@ -91,7 +91,7 @@ const saveImagePlugin = () => {
                 res.end(JSON.stringify({ success: false, error: 'Missing or invalid imageData field' }));
                 return;
               }
-              const dataPath = join(process.cwd(), 'data', path);
+              const dataPath = join(process.cwd(), 'public', path);
               const dir = dirname(dataPath);
               mkdirSync(dir, { recursive: true });
               
@@ -127,14 +127,6 @@ export default defineConfig({
     saveFilePlugin(),
     saveImagePlugin()
   ],
-  css: {
-    // Avoid Dart Sass "legacy-js-api" deprecation warnings by using the modern API.
-    preprocessorOptions: {
-      scss: {
-        api: 'modern'
-      }
-    }
-  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -147,4 +139,3 @@ export default defineConfig({
     }
   }
 });
-

@@ -1,0 +1,76 @@
+/* Common styles for action property inspectors */
+.container {
+  padding: 0 30px 0 0;
+}
+
+.field-wrapper {
+  margin-bottom: 10px;
+}
+
+.field-label {
+  font-size: 12px;
+  color: #ccc;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.field-input {
+  margin-bottom: 15px;
+}
+
+.text-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #7a7a7a;
+  background-color: #2d2d2d;
+  color: #e6e6e6;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.text-input:disabled {
+  opacity: 0.6;
+}
+
+.field-input-spacing {
+  margin-bottom: 10px;
+}
+
+.field-help {
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 15px;
+}
+
+.save-button {
+  margin-top: 15px;
+}
+
+.primary-button {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background-color: #0078d4;
+  color: #fff;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.primary-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.status.success {
+  color: #3adb76;
+}
+
+.status.error {
+  color: #ff6b6b;
+}

@@ -15,7 +15,7 @@ export default function (name: string) {
   // Store cleanup functions for image watchers (per context)
   const watcherCleanups = new Map<string, () => void>();
 
-  // Save image to data/last/{name}.png via localhost:5173
+  // Save image to public/images/last/{name}.png via localhost:5173
   const saveImageToFile = async (imageData: string, imagePath: string) => {
     try {
       // Send POST request to localhost:5173 to save the image
@@ -32,7 +32,7 @@ export default function (name: string) {
 
       if (response.ok) {
         const result = await response.json();
-        console.log(`[ImageButton] Image saved successfully to data/${imagePath}`);
+        console.log(`[ImageButton] Image saved successfully to public/images/${imagePath}`);
       } else {
         const error = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.warn('[ImageButton] Failed to save image via server:', error);
@@ -67,7 +67,7 @@ export default function (name: string) {
     }
   };
 
-  // Load saved image from data/last/{name}.png
+  // Load saved image from /images/last/{name}.png
   const loadSavedImage = async (context: string): Promise<boolean> => {
     try {
       const action = plugin.getAction(context);
@@ -75,7 +75,7 @@ export default function (name: string) {
 
       const settings = action.settings as any;
       const imageName = settings?.imageName || 'httpImage';
-      const savedImagePath = `/data/last/${imageName}.png`;
+      const savedImagePath = `/images/last/${imageName}.png`;
 
       console.log(`[ImageButton] Attempting to load saved image from: ${savedImagePath}`);
 
@@ -260,8 +260,8 @@ export default function (name: string) {
           action.setImage(processedDataUrl);
           console.log('[ImageButton] setImage called successfully');
           
-          // Save processed image to data/last/{name}.png
-          const imagePath = `last/${imageName}.png`;
+          // Save processed image to public/images/last/{name}.png
+          const imagePath = `images/last/${imageName}.png`;
           await saveImageToFile(processedDataUrl, imagePath);
         } catch (error) {
           console.error('[ImageButton] Error calling setImage:', error);

@@ -3,7 +3,6 @@ const fs = require('fs-extra');
 
 const manifest = {};
 const { PUUID, Actions, i18n, CategoryIcon, Version, Software, ApplicationsToMonitor } = require('../src/manifest.cjs');
-console.log('开始执行自动化构建...');
 
 // 开发环境处理
 if (process.argv[2] === 'dev') {
